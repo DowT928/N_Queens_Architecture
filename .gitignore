@@ -1,0 +1,39 @@
+# Local IDE settings
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+.settings/
+.classpath
+.project
+
+# Generated Java/build output
+/build/
+/out/
+/target/
+/bin/
+.gradle/
+*.class
+
+# Disposable debug runs (formal logs must remain tracked)
+/experiments/debug/
+
+# OS/editor temporary files
+.DS_Store
+Thumbs.db
+Desktop.ini
+*.swp
+*.swo
+*~
+*.tmp
+~$*
+
+# JVM crash dumps generated outside experiment capture
+/hs_err_pid*.log
+/replay_pid*.log
+/*.hprof
+
+# Preserve every original formal-experiment record; never ignore *.log globally
+!/experiments/raw/
+!/experiments/raw/**
