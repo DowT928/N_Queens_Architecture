@@ -3,7 +3,7 @@
 - 负责人：江婧怡
 - 命令标识：`mapreduce`
 - 入口：`nqueens.architectures.mapreduce.ArchitectureSolver`
-- 状态：设计已整理；实现待完成，当前不是有效实验结果。
+- 状态：已实现单线程 MapReduce 首解版本；`N=1/2/3/8/10/12` 已通过调试验证。
 
 ## 架构边界
 
@@ -36,7 +36,7 @@ candidateOrder = parentOrder * n + col
 
 Reducer 必须按 `order` 恢复顺序，因此未来即使 Map 阶段改为并行执行，也不能由线程完成先后决定首解。
 
-## 计划类结构
+## 实现类结构
 
 ```text
 ArchitectureSolver
@@ -52,6 +52,8 @@ ReduceResult
 ```
 
 构造函数不做求解或资源初始化。全部可变状态、调度、记录集合和资源收尾都在 `solve` 调用链内完成。组件诊断如需输出只能写 stderr，stdout 保留给公共 CLI 的一行 JSON。
+
+当前实现为单线程版本。`MapReduceDriver` 每一轮先收集完整候选记录流，再交给 `Shuffler` 构造四类分组，最后由 `Reducer` 对 `LEGAL` 组按 `order` 排序并生成下一轮 frontier 或首解。冲突组虽然不进入下一轮，但会在 Shuffle 结果中真实存在。
 
 ## 调试命令
 
