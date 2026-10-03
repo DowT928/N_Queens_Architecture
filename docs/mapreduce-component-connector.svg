@@ -1,0 +1,108 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="820" viewBox="0 0 1200 820">
+  <defs>
+    <style>
+      .title { font: 700 30px "PingFang SC", "Microsoft YaHei", Arial, sans-serif; fill: #172033; }
+      .subtitle { font: 500 15px "PingFang SC", "Microsoft YaHei", Arial, sans-serif; fill: #526070; }
+      .box-title { font: 700 18px "PingFang SC", "Microsoft YaHei", Arial, sans-serif; fill: #172033; }
+      .box-text { font: 500 13px "PingFang SC", "Microsoft YaHei", Arial, sans-serif; fill: #435064; }
+      .small { font: 500 12px "PingFang SC", "Microsoft YaHei", Arial, sans-serif; fill: #56657a; }
+      .edge { stroke: #34445c; stroke-width: 2.2; fill: none; marker-end: url(#arrow); }
+      .loop { stroke: #7a4f16; stroke-width: 2.2; fill: none; marker-end: url(#arrow-warm); stroke-dasharray: 7 6; }
+      .data { fill: #eef4ff; stroke: #6d8fd6; stroke-width: 1.7; }
+      .component { fill: #ffffff; stroke: #25364d; stroke-width: 2; }
+      .driver { fill: #f6fbf7; stroke: #2f7d51; stroke-width: 2.2; }
+      .stage { fill: #fff9ef; stroke: #c17919; stroke-width: 2; }
+      .result { fill: #f7f2ff; stroke: #7b61c9; stroke-width: 2; }
+      .note { fill: #f8fafc; stroke: #c8d2df; stroke-width: 1.4; }
+      .lane { fill: #fbfcfe; stroke: #e0e7ef; stroke-width: 1.2; }
+    </style>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="9.5" refY="6" orient="auto">
+      <path d="M1,1 L11,6 L1,11 Z" fill="#34445c"/>
+    </marker>
+    <marker id="arrow-warm" markerWidth="12" markerHeight="12" refX="9.5" refY="6" orient="auto">
+      <path d="M1,1 L11,6 L1,11 Z" fill="#7a4f16"/>
+    </marker>
+  </defs>
+
+  <rect x="0" y="0" width="1200" height="820" fill="#ffffff"/>
+  <text x="60" y="58" class="title">MapReduce 架构组件连接器图</text>
+  <text x="60" y="86" class="subtitle">N 皇后首解模式：单机模拟 Map → Shuffle → Reduce；Map 映射当前行候选位置，Shuffle 真实按 key 分组，不部署 Hadoop</text>
+
+  <rect x="50" y="125" width="230" height="92" rx="8" class="component"/>
+  <text x="75" y="158" class="box-title">ArchitectureSolver</text>
+  <text x="75" y="183" class="box-text">公共 Solver 接口适配器</text>
+  <text x="75" y="203" class="small">输入：solve(n)</text>
+
+  <rect x="370" y="120" width="280" height="102" rx="8" class="driver"/>
+  <text x="398" y="154" class="box-title">MapReduce Driver</text>
+  <text x="398" y="179" class="box-text">控制逐行搜索循环 row = 0..N-1</text>
+  <text x="398" y="200" class="small">单进程/多线程内串联三个阶段</text>
+
+  <rect x="760" y="125" width="310" height="92" rx="8" class="result"/>
+  <text x="790" y="158" class="box-title">SolveResult</text>
+  <text x="790" y="183" class="box-text">found + columns</text>
+  <text x="790" y="203" class="small">Reducer 聚合得到首个完整解</text>
+
+  <path d="M280 171 L368 171" class="edge"/>
+  <text x="300" y="153" class="small">n</text>
+  <path d="M652 171 L758 171" class="edge"/>
+  <text x="684" y="153" class="small">first solution</text>
+
+  <rect x="78" y="295" width="1044" height="405" rx="14" class="lane"/>
+  <text x="105" y="326" class="box-title">单轮 MapReduce Job：处理当前 row 的所有候选列</text>
+  <text x="105" y="349" class="small">Driver 每推进一行，就执行一次下面的 Map、Shuffle、Reduce 阶段</text>
+
+  <rect x="115" y="390" width="190" height="112" rx="8" class="data"/>
+  <text x="140" y="423" class="box-title">Frontier</text>
+  <text x="140" y="448" class="box-text">List&lt;SearchState&gt;</text>
+  <text x="140" y="470" class="small">每个状态已合法放置</text>
+  <text x="140" y="489" class="small">前 row 行皇后</text>
+
+  <rect x="375" y="380" width="190" height="132" rx="8" class="stage"/>
+  <text x="405" y="413" class="box-title">Mapper Pool</text>
+  <text x="405" y="438" class="box-text">映射当前行候选位置</text>
+  <text x="405" y="459" class="box-text">col = 0..N-1</text>
+  <text x="405" y="484" class="small">输出带 key 的记录</text>
+
+  <rect x="635" y="382" width="190" height="128" rx="8" class="stage"/>
+  <text x="668" y="415" class="box-title">Shuffler</text>
+  <text x="668" y="440" class="box-text">必须真实按 key</text>
+  <text x="668" y="461" class="box-text">分组候选记录</text>
+  <text x="668" y="486" class="small">Map&lt;Key, List&lt;Record&gt;&gt;</text>
+
+  <rect x="895" y="380" width="190" height="132" rx="8" class="stage"/>
+  <text x="930" y="413" class="box-title">Reducer</text>
+  <text x="930" y="438" class="box-text">聚合 LEGAL 组</text>
+  <text x="930" y="459" class="box-text">得到下一层状态</text>
+  <text x="930" y="484" class="small">或首个完整解</text>
+
+  <path d="M305 446 L373 446" class="edge"/>
+  <text x="316" y="421" class="small">SearchState 列表</text>
+  <path d="M565 446 L633 446" class="edge"/>
+  <text x="580" y="421" class="small">候选记录</text>
+  <path d="M825 446 L893 446" class="edge"/>
+  <text x="836" y="421" class="small">按 key 分组结果</text>
+
+  <path d="M990 514 C990 610 220 610 220 504" class="loop"/>
+  <text x="355" y="675" class="small">next frontier 进入下一行；若 row == N，则 Reducer 返回首解并结束</text>
+
+  <rect x="125" y="555" width="310" height="92" rx="8" class="note"/>
+  <text x="150" y="584" class="box-title">SearchState</text>
+  <text x="150" y="609" class="small">row, columns[], columnsMask, diag1Mask,</text>
+  <text x="150" y="628" class="small">diag2Mask, order；对象不可变</text>
+
+  <rect x="475" y="555" width="300" height="92" rx="8" class="note"/>
+  <text x="500" y="584" class="box-title">CandidateKey</text>
+  <text x="500" y="609" class="small">LEGAL / COLUMN / DIAG1 / DIAG2</text>
+  <text x="500" y="630" class="small">以合法性或冲突标记作为分组 key</text>
+
+  <rect x="815" y="555" width="270" height="92" rx="8" class="note"/>
+  <text x="840" y="584" class="box-title">确定性首解</text>
+  <text x="840" y="609" class="small">Reducer 按 order 排序 LEGAL 记录</text>
+  <text x="840" y="630" class="small">并行 Map 不改变 row/col 搜索顺序</text>
+
+  <rect x="60" y="735" width="1080" height="42" rx="6" fill="#172033"/>
+  <text x="82" y="762" font-family="PingFang SC, Microsoft YaHei, Arial, sans-serif" font-size="15" font-weight="600" fill="#ffffff">
+    任务书约束：单机模拟；必须真实经过 Shuffle；不部署 Hadoop；五种架构共享同一剪枝与搜索顺序。
+  </text>
+</svg>
