@@ -12,7 +12,8 @@
 组件划分：`BlackboardStorage` 保存图中 `row`、`candidateCol`、`queens[]`、三个占用位向量、
 `status` 和 `result`；`CandidateKnowledgeSource` 生成候选列，`ColumnKnowledgeSource` 与
 `DiagonalKnowledgeSource` 组成约束检查，`SolutionKnowledgeSource` 判定候选和完整解；
-`Controller` 按图示顺序调度知识源并负责搜索回退。知识源之间没有直接调用，只通过黑板交换状态。
+`Controller` 按图示顺序调度知识源并负责搜索回退。上述组件均拆分为独立 Java 文件，知识源之间
+没有直接调用，只通过黑板交换状态。
 
 实现 `SolveResult solve(int n)`，内部组件按自己的架构设计添加。构造函数保持无工作量；全部可变状态、初始化、线程/队列和资源收尾都在 solve 内完成。返回前停止并等待工作线程，不留下后台任务。
 
