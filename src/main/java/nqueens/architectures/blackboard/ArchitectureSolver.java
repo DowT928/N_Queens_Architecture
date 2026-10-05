@@ -1,18 +1,16 @@
-/*
- * 架构：黑板；负责人：饶心翊。
- * 组件/连接器：仅适配入口占位，内部组件待实现。
- * 约束：必须包含黑板存储、独立知识源、控制器；知识源只经黑板通信，不直接互相调用。
- * 架构自查：待负责人实现后逐项填写是/否，当前未实现。
- * AI：Codex 生成占位；本人修改、审核及手写声明：待负责人填写。
- */
+/* 文件：ArchitectureSolver.java；架构：黑板；组件：Blackboard、Candidate KS、Constraint KS、Solution KS、Controller。 */
 package nqueens.architectures.blackboard;
 
-import nqueens.contract.Solver;
 import nqueens.contract.SolveResult;
+import nqueens.contract.Solver;
 
 public final class ArchitectureSolver implements Solver {
     @Override
     public SolveResult solve(int n) {
-        throw new UnsupportedOperationException("blackboard: 尚未实现");
+        if (n < 1 || n > 15) throw new IllegalArgumentException("n must be in [1, 15]");
+        BlackboardStorage board = new BlackboardStorage(n);
+        new Controller(board, new CandidateKnowledgeSource(), new ColumnKnowledgeSource(),
+                new DiagonalKnowledgeSource(), new SolutionKnowledgeSource()).run();
+        return board.result();
     }
 }
