@@ -1,0 +1,2 @@
+Set-Location -LiteralPath 'C:\Users\30246\Desktop\学习\大三\软件体系架构\N_Queens_Architecture'
+& 'C:\Program Files\Java\jdk-17.0.12\bin\java.exe' '-cp' 'C:\Users\30246\Desktop\学习\大三\软件体系架构\N_Queens_Architecture\build\20261008T123331481Z-c44a6adecb004d1697bf3af372451bf9' 'nqueens.cli.Main' '--architecture' 'callreturn-iterative' '--n' '12'
