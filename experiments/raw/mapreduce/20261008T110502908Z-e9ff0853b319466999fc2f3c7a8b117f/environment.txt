@@ -1,8 +1,0 @@
-OS: Microsoft Windows 11 家庭版 中文版 10.0.26200 64 位
-CPU: Intel(R) Core(TM) i9-14900HX
-Memory bytes: 34070192128
-Java: java version "17" 2021-09-14 LTS
-Java(TM) SE Runtime Environment (build 17+35-LTS-2724)
-Java HotSpot(TM) 64-Bit Server VM (build 17+35-LTS-2724, mixed mode, sharing)
-Javac: javac 17
-CLASSPATH: D:\developer\Lingo\Lingo18.jar

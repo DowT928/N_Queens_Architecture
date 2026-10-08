@@ -1,2 +1,0 @@
-Set-Location -LiteralPath 'D:\学习诸多事\作业课件相关\大三上\软件体系结构\作业\N皇后'
-& 'D:\developer\JDK17\bin\java.exe' '-cp' 'D:\学习诸多事\作业课件相关\大三上\软件体系结构\作业\N皇后\build\20261008T110504668Z-22c53f31beb04bb78878e1025faf90ce' 'nqueens.cli.Main' '--architecture' 'mapreduce' '--n' '12'

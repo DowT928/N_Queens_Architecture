@@ -16,8 +16,6 @@ MapReduce 内部组件之间通过记录流和分组结果连接：
 3. `Shuffler` 必须真实按 `CandidateKey` 分组，形成 `LEGAL`、`COLUMN_CONFLICT`、`DIAG1_CONFLICT`、`DIAG2_CONFLICT` 四类记录。
 4. `Reducer` 只消费 `LEGAL` 组，按统一顺序生成下一轮 `frontier`，或返回首个完整解。
 
-组件图见 [mapreduce-component-connector.svg](../../../../../../docs/mapreduce-component-connector.svg)，单轮流程图见 [mapreduce-single-round.svg](../../../../../../docs/mapreduce-single-round.svg)，图注和判定标准见 [mapreduce-diagram-notes.md](../../../../../../docs/mapreduce-diagram-notes.md)。
-
 ## 搜索约束
 
 本实现必须与公共基线保持等价：
@@ -65,4 +63,4 @@ ReduceResult
 
 实现完成后至少验证 `N=1/2/3/8/10/12`。标准首解见公共基线文档。
 
-参见 [公共接口规范](../../../../../../docs/contract.md) 和 [自查与 AI 记录模板](../../../../../../docs/templates.md)。
+参见 [公共接口规范](../../../../../../docs/contract.md)。

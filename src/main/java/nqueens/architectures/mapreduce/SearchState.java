@@ -3,8 +3,6 @@
  * 架构风格：MapReduce（单机模拟）
  * 组件/连接器：不可变搜索状态。
  * 自查：保存 row、columns、三个位向量和 order；按当前行扩展；数组防御性复制。
- * AI 使用声明：使用过 AI 辅助，已人工审核修改，详情见报告附录。
- * 声明人：江婧怡（手写签名另附）。
  */
 package nqueens.architectures.mapreduce;
 

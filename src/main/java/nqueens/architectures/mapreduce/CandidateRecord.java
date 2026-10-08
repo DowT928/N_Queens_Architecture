@@ -3,8 +3,6 @@
  * 架构风格：MapReduce（单机模拟）
  * 组件/连接器：Map 输出记录，作为 Shuffle 输入。
  * 自查：每个候选生成记录；记录携带 key 和 order；合法记录携带下一状态。
- * AI 使用声明：使用过 AI 辅助，已人工审核修改，详情见报告附录。
- * 声明人：江婧怡（手写签名另附）。
  */
 package nqueens.architectures.mapreduce;
 

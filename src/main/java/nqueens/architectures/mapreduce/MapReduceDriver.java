@@ -3,8 +3,6 @@
  * 架构风格：MapReduce（单机模拟）
  * 组件/连接器：阶段调度器。
  * 自查：solve 内创建状态；每轮执行 Map、Shuffle、Reduce；返回公共 SolveResult。
- * AI 使用声明：使用过 AI 辅助，已人工审核修改，详情见报告附录。
- * 声明人：江婧怡（手写签名另附）。
  */
 package nqueens.architectures.mapreduce;
 

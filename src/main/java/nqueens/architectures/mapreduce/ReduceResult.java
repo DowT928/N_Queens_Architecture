@@ -3,8 +3,6 @@
  * 架构风格：MapReduce（单机模拟）
  * 组件/连接器：Reduce 输出结果。
  * 自查：区分下一轮 frontier 和首解；不参与搜索；返回结果时复制数组。
- * AI 使用声明：使用过 AI 辅助，已人工审核修改，详情见报告附录。
- * 声明人：江婧怡（手写签名另附）。
  */
 package nqueens.architectures.mapreduce;
 
