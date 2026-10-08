@@ -3,7 +3,7 @@
 - 负责人：饶心翊
 - 命令标识：`blackboard`
 - 入口：`nqueens.architectures.blackboard.ArchitectureSolver`
-- 状态：阶段二初版已实现，可运行并接受公共 CLI 验证。
+- 状态：阶段二代码审核已完成；阶段三正式实验按统一脚本采集原始日志。
 
 ## 实现约束
 
@@ -24,5 +24,21 @@
 ```powershell
 .\scripts\run.ps1 -Architecture blackboard -N 8
 ```
+
+## 阶段三正式实验
+
+正式实验固定使用 N=8、N=10、N=12，每个规模独立运行 5 次。提交前确认代码已提交且工作区干净，
+再使用同一台机器、同一 JDK 和相同参数运行：
+
+```powershell
+.\scripts\experiment.ps1 -Architecture blackboard -Repeat 5 -JavaHome 'D:\JAVA\jdk-17.0.12'
+```
+
+脚本会在 `experiments/raw/blackboard/<批次编号>/` 保存环境信息、完整编译命令、每次运行的 stdout、
+stderr 和退出码。原始日志不得修改、补写、覆盖或删除；性能分析应另存到 `experiments/analysis/`。
+`solve_elapsed_ns` 只表示单次 `solve` 调用耗时，不能根据单次结果下结论。
+
+阶段三提交前应核对 N=8、N=10、N=12 的每次运行均返回退出码 0，状态为 `solved`，并且 `columns` 结果
+合法且按统一的行递增、列递增首解规则保持一致。
 
 参见 [公共接口规范](../../../../../../docs/contract.md) 和 [自查与 AI 记录模板](../../../../../../docs/templates.md)。
