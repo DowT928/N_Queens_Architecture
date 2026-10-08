@@ -1,15 +1,10 @@
 /*
  * 文件：ReduceResult.java
  * 架构风格：MapReduce（单机模拟）
- * 本文件组件/连接器：Reduce 阶段输出，传回下一轮 frontier 或首解。
- * 架构约束自查（每项填是/否及说明）：
- * 1. 是：明确区分继续搜索的 frontier 与已经找到的 first solution。
- * 2. 是：结果对象不负责搜索，只承载 Reducer 输出。
- * 3. 是：返回 columns 时复制数组，避免共享可变结果。
- * AI 工具及版本：Codex（GPT-5）
- * 用于任务：实现 Driver 与 Reducer 之间的结果连接器。
- * 自行修改内容：新增不可变 ReduceResult。
- * 声明人及任务书要求的手写签名：待江婧怡线下补充。
+ * 组件/连接器：Reduce 输出结果。
+ * 自查：区分下一轮 frontier 和首解；不参与搜索；返回结果时复制数组。
+ * AI 使用声明：使用过 AI 辅助，已人工审核修改，详情见报告附录。
+ * 声明人：江婧怡（手写签名另附）。
  */
 package nqueens.architectures.mapreduce;
 

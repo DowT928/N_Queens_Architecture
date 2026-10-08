@@ -1,15 +1,10 @@
 /*
  * 文件：MapReduceDriver.java
  * 架构风格：MapReduce（单机模拟）
- * 本文件组件/连接器：架构驱动器，逐轮连接 Map、Shuffle、Reduce 三阶段。
- * 架构约束自查（每项填是/否及说明）：
- * 1. 是：frontier 和阶段组件都在 solve 内创建，构造函数无求解工作。
- * 2. 是：每轮都执行 Map → Shuffle → Reduce，不跳过真实分组阶段。
- * 3. 是：返回公共 SolveResult，stdout JSON 仍由公共 CLI 输出。
- * AI 工具及版本：Codex（GPT-5）
- * 用于任务：实现 MapReduce 单机模拟调度与首解返回。
- * 自行修改内容：新增按层推进 frontier 的求解驱动。
- * 声明人及任务书要求的手写签名：待江婧怡线下补充。
+ * 组件/连接器：阶段调度器。
+ * 自查：solve 内创建状态；每轮执行 Map、Shuffle、Reduce；返回公共 SolveResult。
+ * AI 使用声明：使用过 AI 辅助，已人工审核修改，详情见报告附录。
+ * 声明人：江婧怡（手写签名另附）。
  */
 package nqueens.architectures.mapreduce;
 

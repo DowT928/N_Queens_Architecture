@@ -1,15 +1,10 @@
 /*
  * 文件：Shuffler.java
  * 架构风格：MapReduce（单机模拟）
- * 本文件组件/连接器：Shuffle 阶段组件，把候选记录按 CandidateKey 分组。
- * 架构约束自查（每项填是/否及说明）：
- * 1. 是：真实构造 EnumMap<CandidateKey, List<CandidateRecord>> 分组结果。
- * 2. 是：四类 key 都初始化为空组，即使某轮没有该类记录也保留组结构。
- * 3. 是：不执行搜索扩展，合法状态生成和首解判断留给 Reducer。
- * AI 工具及版本：Codex（GPT-5）
- * 用于任务：实现 MapReduce 的 Shuffle 阶段。
- * 自行修改内容：新增按 key 分组的连接器实现。
- * 声明人及任务书要求的手写签名：待江婧怡线下补充。
+ * 组件/连接器：Shuffle 阶段。
+ * 自查：真实按 key 分组；四类组都保留；不负责搜索扩展。
+ * AI 使用声明：使用过 AI 辅助，已人工审核修改，详情见报告附录。
+ * 声明人：江婧怡（手写签名另附）。
  */
 package nqueens.architectures.mapreduce;
 

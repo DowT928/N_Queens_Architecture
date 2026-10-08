@@ -1,15 +1,10 @@
 /*
  * 文件：SearchState.java
  * 架构风格：MapReduce（单机模拟）
- * 本文件组件/连接器：不可变搜索状态，作为 MapReduce 记录中的领域数据。
- * 架构约束自查（每项填是/否及说明）：
- * 1. 是：保存 row、columns、columnsMask、diag1Mask、diag2Mask 和稳定 order。
- * 2. 是：place 只添加当前 row 的一个 col，保持按行搜索。
- * 3. 是：columns 输入输出都复制，避免阶段之间共享可变数组。
- * AI 工具及版本：Codex（GPT-5）
- * 用于任务：实现 MapReduce 搜索状态表示。
- * 自行修改内容：新增不可变状态和位向量更新逻辑。
- * 声明人及任务书要求的手写签名：待江婧怡线下补充。
+ * 组件/连接器：不可变搜索状态。
+ * 自查：保存 row、columns、三个位向量和 order；按当前行扩展；数组防御性复制。
+ * AI 使用声明：使用过 AI 辅助，已人工审核修改，详情见报告附录。
+ * 声明人：江婧怡（手写签名另附）。
  */
 package nqueens.architectures.mapreduce;
 
