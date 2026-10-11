@@ -1,6 +1,13 @@
 # N 皇后多架构实验
 
-五种架构实现 N 皇后，统一输入输出和实验采集。**公共骨架已建立，五种架构待实现。** 当前占位入口退出码为 3，不是有效实验结果。
+本项目使用五种软件体系结构风格实现 N 皇后问题，并统一输入输出协议、搜索与剪枝规则和实验采集方式。管道-过滤器、调用/返回（迭代）、调用/返回（回溯）、黑板和 MapReduce（单机模拟）五种实现均已完成。
+
+## 当前进度
+
+- 五种架构代码及各架构 README 已完成。
+- N=8、N=10、N=12 的正式实验原始日志已完成；每种架构、每个规模各运行 5 次。
+- 原始日志保存在 `experiments/raw/`，不得修改、覆盖或删除。
+- 第四阶段仍需完成实验派生分析、最终报告、与代码一致的 UML 类图、绘制过程证据、原创反思和 AI 使用附录，并整理最终 PDF 与代码包。
 
 ## 环境与约定
 
@@ -37,7 +44,7 @@ experiments/
 | [blackboard](src/main/java/nqueens/architectures/blackboard/README.md) | `blackboard` | 饶心翊 |
 | [mapreduce](src/main/java/nqueens/architectures/mapreduce/README.md) | `mapreduce` | 江婧怡 |
 
-成员在所属目录实现 `SolveResult solve(int n)` 并按架构拆分组件；公共接口、脚本变更须组内同步。结果数组按行保存零基列下标。详见 [接口规范](docs/contract.md)、[自查和 AI 记录模板](docs/templates.md)。
+各架构均通过 `SolveResult solve(int n)` 接入公共接口，并按照对应架构风格拆分组件；公共接口和脚本变更须组内同步。结果数组按行保存零基列下标。详见 [接口规范](docs/contract.md)、[自查和 AI 记录模板](docs/templates.md)。
 
 ## 日常调试
 
@@ -78,4 +85,4 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\run.ps1 -Archi
 .\scripts\verify.ps1 -JavaHome $env:JAVA_HOME
 ```
 
-验证公共契约及 CLI 行为；不替代架构人工审查。架构完成后验证 N=1 有解、N=2/3 无解，以及 N=8/10/12 首解合法且一致。
+验证公共契约及 CLI 行为；不替代架构人工审查。最终提交前应验证 N=1 有解、N=2/3 无解，以及 N=8/10/12 的首解合法且一致。

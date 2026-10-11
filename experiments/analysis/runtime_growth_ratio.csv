@@ -1,0 +1,6 @@
+﻿architecture,architecture_id,n8_to_n10_ratio,n10_to_n12_ratio,n8_to_n12_ratio
+管道-过滤器,pipefilter,0.936955194,1.068766544,1.001386364
+调用/返回（迭代）,callreturn-iterative,1.020584895,1.729447767,1.765048268
+调用/返回（回溯）,callreturn-backtracking,1.172646605,0.850715578,0.997588735
+黑板,blackboard,0.822735818,1.114458525,0.916904946
+MapReduce（单机模拟）,mapreduce,3.018266801,15.463524922,46.673043894
