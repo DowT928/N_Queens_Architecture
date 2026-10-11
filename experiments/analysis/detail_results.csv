@@ -1,0 +1,16 @@
+﻿architecture,architecture_id,n,run_count,success_count,success_rate,mean_ms,median_ms,min_ms,max_ms,std_ms,first_solution_consistent,stderr_all_empty
+管道-过滤器,pipefilter,8,5,5,1,28.95382,27.3377,23.2919,33.8847,4.598683177,true,true
+管道-过滤器,pipefilter,10,5,5,1,25.25348,25.6142,23.1552,27.3714,1.727659326,true,true
+管道-过滤器,pipefilter,12,5,5,1,27.97182,27.3756,26.0338,32.845,2.814612579,true,true
+调用/返回（迭代）,callreturn-iterative,8,5,5,1,2.13136,2.1132,1.9624,2.4131,0.187390830,true,true
+调用/返回（迭代）,callreturn-iterative,10,5,5,1,2.27032,2.1567,1.9715,2.9241,0.373832291,true,true
+调用/返回（迭代）,callreturn-iterative,12,5,5,1,3.68378,3.7299,2.7221,4.5265,0.718635827,true,true
+调用/返回（回溯）,callreturn-backtracking,8,5,5,1,2.11806,2.0736,2.0548,2.2727,0.089644844,true,true
+调用/返回（回溯）,callreturn-backtracking,10,5,5,1,2.64932,2.4316,2.0723,3.7501,0.659985312,true,true
+调用/返回（回溯）,callreturn-backtracking,12,5,5,1,2.11502,2.0686,2.0223,2.319,0.117464237,true,true
+黑板,blackboard,8,5,5,1,7.74706,6.3301,5.2729,11.7407,2.829653555,true,true
+黑板,blackboard,10,5,5,1,5.31626,5.208,4.8725,6.144,0.493806377,true,true
+黑板,blackboard,12,5,5,1,5.72692,5.8041,5.2433,6.3518,0.455424793,true,true
+MapReduce（单机模拟）,mapreduce,8,5,5,1,16.95634,16.3028,15.7138,18.3372,1.277723400,true,true
+MapReduce（单机模拟）,mapreduce,10,5,5,1,49.40514,49.2062,48.4716,51.0356,1.001691808,true,true
+MapReduce（单机模拟）,mapreduce,12,5,5,1,767.11814,760.9013,690.4395,853.453,60.036916261,true,true
