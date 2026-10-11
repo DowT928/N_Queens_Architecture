@@ -1,0 +1,8 @@
+OS: Microsoft Windows 11 家庭版 中文版 10.0.26200 64 位
+CPU: 13th Gen Intel(R) Core(TM) i9-13900H
+Memory bytes: 16786370560
+Java: java version "17.0.12" 2024-07-16 LTS
+Java(TM) SE Runtime Environment (build 17.0.12+8-LTS-286)
+Java HotSpot(TM) 64-Bit Server VM (build 17.0.12+8-LTS-286, mixed mode, sharing)
+Javac: javac 17.0.12
+CLASSPATH: .;C:\Program Files\Java\jdk-17.0.12\lib\dt.jar;C:\Program Files\Java\jdk-17.0.12\lib\tools.jar

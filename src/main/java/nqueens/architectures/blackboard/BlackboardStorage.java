@@ -1,3 +1,15 @@
+/*
+ * 文件：BlackboardStorage.java
+ * 架构风格：黑板。
+ * 本文件组件/连接器：黑板存储；保存 row、candidateColumn、queens、三个位向量、status 和 result。
+ * 架构约束自查：
+ * 1. 是：本文件实现共享黑板存储。
+ * 2. 是：知识源之间不直接通信，只通过本黑板交换状态。
+ * 3. 是：列和两条对角线使用统一的 long 位向量剪枝。
+ * AI：OpenAI Codex 辅助实现、拆分组件和检查字段设计。
+ * 本人修改：根据架构图补齐黑板字段并核对状态复制。
+ * 声明人：饶心翊
+ */
 package nqueens.architectures.blackboard;
 import nqueens.contract.SolveResult;
 final class BlackboardStorage {
