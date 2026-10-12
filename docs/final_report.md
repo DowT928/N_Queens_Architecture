@@ -11,7 +11,7 @@
 | 项目题目 | N 皇后问题多种软件体系架构实现与比较                               |
 | 班级 | 24软件工程4班                                          |
 | 小组成员 | 杨铱玫、戴柔柔、饶心翊、江婧怡                                   |
-| 学号 | 202430551823、202430550318、202430552631、[待填写：江婧怡学号] |
+| 学号 | 202430551823、202430550318、202430552631、202430552460 |
 | 指导教师 | 林连南                                               |
 | 提交日期 | 2026/10/12                                        |
 
@@ -149,7 +149,7 @@ N 皇后问题要求在一个 N×N 棋盘上放置 N 个皇后，使任意两个
 | 杨铱玫 | 管道-过滤器；实验、数据、文档与提交整合 | 负责 Pipe-Filter 架构的设计、源代码实现、调试、验证、对应说明及 UML；负责实验组织与执行、实验数据采集和结果校验、数据统计分析与图表整理、公共文档整理、最终报告整合与完善，以及提交材料的整体检查和整理 |
 | 戴柔柔 | 调用/返回（迭代、回溯）；公共接口 | 负责调用/返回（迭代）和调用/返回（回溯）两个实现的设计、源代码实现、调试、验证、对应说明及 UML；负责各架构共同遵循的公共接口设计与实现 |
 | 饶心翊 | 黑板 | 负责 Blackboard 架构的设计、源代码实现、调试、验证和对应说明，并完成该架构的 UML 建模 |
-| 江婧怡 | MapReduce（单机模拟） | 负责 MapReduce 单机模拟架构的设计、源代码实现、调试、验证和对应说明，并完成该架构的 UML 建模 |
+| 江婧怡 | MapReduce（单机模拟） |  负责 MapReduce 单机模拟架构的设计、源代码实现、调试、验证和对应说明，并完成该架构的 UML 建模；负责整理并提交 N 皇后统一算法基线，明确按行按列搜索顺序、三个位向量剪枝规则等公共约束 |
 
 ## 4 五个实现版本的架构设计与实现
 
@@ -440,21 +440,97 @@ Controller
 
 #### 4.5.1 架构思想
 
+MapReduce 版本将 N 皇后首解搜索组织为单机内的 Map、Shuffle、Reduce 三个阶段。该实现不部署 Hadoop，也不依赖外部分布式框架，而是在一次 `solve(int n)` 调用内部用普通 Java 集合模拟任务映射、按键分组和归约推进。公共 CLI 仍然负责参数解析、计时、结果验证和 JSON 输出，MapReduce 架构目录只负责实现公共 `Solver` 接口并返回 `SolveResult`。
+
+与调用/返回版本沿一条深度优先路径逐步尝试不同，本版本维护当前层的 `frontier`，即一组已经放置到同一行之前的搜索状态。每一轮中，Driver 对 frontier 中的每个 `SearchState` 执行 Map，生成候选记录流；Shuffle 阶段按候选类型真实分组；Reduce 阶段只把合法候选推进为下一轮 frontier，或在形成完整棋盘时返回统一顺序下的首解。这样的分解使“候选生成、冲突分类、按键分组、合法状态汇总”成为清晰的阶段边界。
+
+该版本仍严格遵循公共基线：按 `row = 0..N-1` 逐行推进，每行按 `col = 0..N-1` 枚举，只使用列、主对角线和副对角线三个 `long` 位向量剪枝，不使用对称性剪枝、启发式排序、预计算答案或跨次缓存。为了使逐层展开得到的首解与统一行列顺序一致，候选记录携带 `order`，其计算方式为 `parentOrder * n + col`，Reducer 在处理合法记录时按该顺序恢复确定性。
+
 #### 4.5.2 Map 阶段
+
+Map 阶段由 `Mapper` 实现。它的输入是一个不可变的 `SearchState` 和棋盘规模 `n`，输出是当前状态在下一行的全部候选记录。`SearchState` 中的 `row` 表示下一待放置的行，`columns` 保存已经放置的列，`columnsMask`、`diag1Mask` 和 `diag2Mask` 分别表示列、`row-col+n-1` 对角线和 `row+col` 对角线占用情况。
+
+`Mapper.map(state, n)` 对当前行的所有列从小到大枚举。对于每个 `col`，先计算候选顺序号 `order = state.order() * n + col`，再调用 `classify` 判断该候选属于 `LEGAL`、`COLUMN_CONFLICT`、`DIAG1_CONFLICT` 或 `DIAG2_CONFLICT`。如果候选合法，Mapper 通过 `state.place(n, col, order)` 构造下一行的 `SearchState`；如果发生冲突，则仍然生成 `CandidateRecord`，但不携带下一状态。
+
+这一设计保证 Map 阶段不是只输出合法分支，而是对“当前 frontier × 当前行所有列”的候选空间进行完整分类。冲突候选不会进入下一轮搜索，但会进入 Shuffle 分组，从而保留 MapReduce 风格中间记录流的可检查性。
 
 #### 4.5.3 中间任务
 
+本版本的中间任务由 `CandidateRecord`、`CandidateKey` 和 `Shuffler` 共同承担。`CandidateRecord` 是 Map 输出记录，包含分组键 `key`、候选位置 `row` 与 `col`、顺序号 `order`，以及合法候选对应的 `nextState`。其中，`CandidateKey` 枚举定义四类分组：`LEGAL`、`COLUMN_CONFLICT`、`DIAG1_CONFLICT` 和 `DIAG2_CONFLICT`。
+
+Shuffle 阶段由 `Shuffler.shuffle(records)` 实现。它使用 `EnumMap<CandidateKey, List<CandidateRecord>>` 创建分组结果，并在处理记录前为四个 `CandidateKey` 都初始化对应列表。随后，Shuffler 遍历 Mapper 输出的记录流，根据 `record.key()` 将记录加入对应组。因此，即使 Reducer 后续只消费 `LEGAL` 组，三类冲突组也会在 Shuffle 结果中真实存在。
+
+这里的关键点是，`Mapper`、`Shuffler` 和 `Reducer` 之间不存在彼此直接调用或共享内部状态。三者都由 `MapReduceDriver` 调度，阶段之间通过记录列表和分组结果连接。这样既避免把 MapReduce 写成普通回溯函数，也使 Shuffle 阶段成为真实连接器，而不是仅在类名中出现的空壳。
+
 #### 4.5.4 Reduce / 汇总阶段
+
+Reduce 阶段由 `Reducer` 实现。`Reducer.reduce(grouped, n)` 接收 Shuffle 形成的按键分组结果，取出 `CandidateKey.LEGAL` 对应的合法记录列表，并按照 `CandidateRecord.order` 升序排序。排序后的合法记录与公共“逐行、逐列”搜索顺序一致，因此首解不会受集合遍历顺序或未来并行 Map 完成先后的影响。
+
+Reducer 遍历排序后的合法记录。若某条记录的 `nextState.row()` 已经等于 `n`，说明所有行均已放置皇后，Reducer 立即通过 `ReduceResult.found(state)` 返回首个完整解。若尚未完成，则把该 `SearchState` 加入下一轮 `frontier`。当前轮所有合法记录均未完成时，Reducer 返回 `ReduceResult.continueWith(nextFrontier)`，由 Driver 进入下一轮。
+
+冲突组不会进入下一轮 frontier，也不会被 Reducer 当作搜索状态推进。这样既保持了三类冲突被真实分组的架构证据，又确保搜索语义仍然只沿合法候选继续。
 
 #### 4.5.5 单机任务调度
 
+`MapReduceDriver` 是本版本的阶段调度器。它在 `solve(int n)` 内创建 `Mapper`、`Shuffler`、`Reducer` 和初始 `frontier`，初始 frontier 只包含 `SearchState.root()`。随后，Driver 在 `while (!frontier.isEmpty())` 循环中依次执行三步：调用 `mapFrontier` 收集当前 frontier 的全部候选记录，调用 `shuffler.shuffle(mapped)` 构造分组结果，调用 `reducer.reduce(grouped, n)` 得到归约结果。
+
+如果 `ReduceResult` 中已经包含首解，Driver 将其列数组转换为公共 `SolveResult(true, columns)` 并返回；如果没有首解，则把 `frontier` 更新为 `reduced.nextFrontier()` 继续下一轮。当 frontier 为空仍未找到完整解时，说明问题在给定 N 下无解，Driver 返回 `SolveResult(false, new int[0])`。
+
+当前实现为单线程单进程模拟。构造函数不执行求解，也不创建长期线程或队列；所有阶段组件、frontier、中间记录和分组结果都在一次 `solve` 调用链内部创建和使用。组件诊断如需输出只能写入标准错误，标准输出仍由公共 CLI 统一输出一行 JSON。
+
 #### 4.5.6 控制流
+
+MapReduce 版本的控制流集中在 `MapReduceDriver`，阶段组件本身不掌握全局循环。整体过程如下。
+
+```text
+ArchitectureSolver.solve(n)
+  -> MapReduceDriver.solve(n)
+       -> frontier = [SearchState.root()]
+       -> Mapper.map(state, n)          // 对 frontier 中每个状态执行
+       -> Shuffler.shuffle(records)
+       -> Reducer.reduce(grouped, n)
+       -> 若找到首解，返回 SolveResult(true, columns)
+       -> 否则以 nextFrontier 进入下一轮
+       -> frontier 为空时返回 SolveResult(false, [])
+```
+
+在一轮内部，Driver 先完成全部 Map 输出，再统一交给 Shuffle 分组，最后才由 Reducer 处理合法组。`Mapper` 不直接调用 `Shuffler`，`Shuffler` 也不直接调用 `Reducer`，这三者之间的先后关系由 Driver 的调度顺序体现。这样的控制结构使阶段边界和连接器形式在代码中能够被直接检查。
+
+由于候选顺序号按 N 进制路径编码，`[c0, c1, ..., ck]` 对应的顺序会随行列选择递增而递增。Reducer 每轮按 `order` 排序合法记录，保证逐层 frontier 的排列与公共基线中的行列顺序一致；当最后一层出现多个完整解时，最先返回的是统一搜索顺序下的首个完整解。
 
 #### 4.5.7 数据传递方式
 
+本版本的数据传递以不可变搜索状态和候选记录为主。`SearchState` 的字段均为私有 `final`，包括 `row`、`columns`、`columnsMask`、`diag1Mask`、`diag2Mask` 和 `order`。构造和读取 `columns` 时都会复制数组，`place` 方法也通过 `Arrays.copyOf` 创建新列数组，因此合法候选扩展时不会修改父状态。
+
+Map 阶段输出 `List<CandidateRecord>`，Shuffle 阶段将其转换为 `Map<CandidateKey, List<CandidateRecord>>`，Reduce 阶段再输出 `ReduceResult`。`CandidateRecord` 对合法候选保存下一状态，对冲突候选只保存冲突分类、候选位置和顺序号；`ReduceResult` 区分继续搜索时的 `nextFrontier` 和已经找到时的 `firstSolution`，并用不可修改列表保存下一轮 frontier。
+
+各阶段通过上述数据对象连接，而不是直接共享可变搜索容器。Driver 的 `frontier`、Map 输出列表和 Shuffle 分组结果都是单次求解内部的局部对象；求解结束后，只通过公共 `SolveResult` 向外返回找到与否和列数组。
+
 #### 4.5.8 代码映射
 
+表 4-7 MapReduce（单机模拟）的代码映射
+
+| 代码位置 | 架构职责 |
+|---|---|
+| `src/main/java/nqueens/cli/Main.java` | 公共入口、架构选择、结果验证和 JSON 输出 |
+| `src/main/java/nqueens/architectures/mapreduce/ArchitectureSolver.java` | 公共 `Solver` 入口适配器，连接 CLI 与 MapReduceDriver |
+| `src/main/java/nqueens/architectures/mapreduce/MapReduceDriver.java` | 阶段调度器，维护 frontier，按轮执行 Map、Shuffle、Reduce |
+| `src/main/java/nqueens/architectures/mapreduce/Mapper.java` | Map 阶段，枚举当前行候选列并输出 `CandidateRecord` |
+| `src/main/java/nqueens/architectures/mapreduce/Shuffler.java` | Shuffle 阶段，按 `CandidateKey` 将候选记录真实分组 |
+| `src/main/java/nqueens/architectures/mapreduce/Reducer.java` | Reduce 阶段，排序并消费 `LEGAL` 组，生成下一轮 frontier 或首解 |
+| `src/main/java/nqueens/architectures/mapreduce/SearchState.java` | 不可变搜索状态，保存行号、列数组、三个位向量和顺序号 |
+| `src/main/java/nqueens/architectures/mapreduce/CandidateRecord.java` | Map 输出和 Shuffle 输入记录，携带候选分类、位置、顺序和合法下一状态 |
+| `src/main/java/nqueens/architectures/mapreduce/CandidateKey.java` | Shuffle 分组键，区分合法候选和三类冲突 |
+| `src/main/java/nqueens/architectures/mapreduce/ReduceResult.java` | Reduce 输出，承载下一轮 frontier 或首个完整解 |
+| `src/main/java/nqueens/contract/Solver.java`、`SolveResult.java` | 公共求解接口和结果契约 |
+
 #### 4.5.9 特点与代价
+
+MapReduce 版本的优点是阶段边界清楚。Mapper 只负责候选枚举与分类，Shuffler 只负责按键分组，Reducer 只负责合法组汇总与首解判断，Driver 则集中管理轮次推进。与直接调用版本相比，这种结构更能展示任务映射、分组和汇总的架构思想；与黑板版本相比，它不依赖共享状态中心，而是通过记录流和分组结果传递中间数据。
+
+该版本也为后续并行化保留了结构基础。理论上，frontier 中不同 `SearchState` 的 Map 任务可以并行执行；只要记录保留 `order`，Reducer 仍可恢复统一首解顺序。不过当前实现明确是单线程单机模拟，实验结论不能等同于真实分布式 MapReduce 系统的表现。
+
+它的代价主要来自中间数据和逐层展开。为体现真实 Map 与 Shuffle，每个候选位置都会形成 `CandidateRecord`，冲突记录虽然不继续搜索，也会进入分组结构；Reducer 还需要复制并排序合法组。随着 N 增大，frontier、候选记录和分组集合会明显增长。正式实验中，MapReduce 单机模拟在 N=8、10、12 下的平均求解时间分别为 16.956 ms、49.405 ms 和 767.118 ms（见表 7-1），N=12 的增长反映了当前任务拆分方式和中间对象管理成本，而不代表 MapReduce 架构在所有问题和执行环境中都低效。
 
 ## 5 五个实现版本的架构对比
 
@@ -737,7 +813,7 @@ MapReduce 单机模拟每轮对 frontier 中所有状态执行 Map，再按四�
 | A-2 | OpenAI Codex-5.6              | 管道-过滤器实现与测试阶段 | 组件装配、五条 Pipe、消息协议、候选生成、位向量校验、终止/异常处理及专项测试 | 杨铱玫核对组件连接、消息边界、搜索顺序、位索引、线程回收和测试结果 |
 | A-3 | OpenAI Codex-6                | 调用/返回实现阶段| 参数与公共契约、迭代搜索、递归回溯、棋盘状态和位向量操作 | 戴柔柔核对分层调用、迭代游标、递归位置、放置/撤销及首解行为    |
 | A-4 | OpenAI Codex-5.6 | 黑板实现阶段 | 依据任务书和黑板架构图完成黑板存储、候选/列/对角线/解判定知识源、控制器、统一位向量剪枝、组件拆分、README 和源文件自查声明 | 饶心翊核对架构图、公共接口、字段设计、知识源边界、调度顺序、回退流程、首解结果和源文件头部声明；未采用未经本人确认的签名、实验数据和 UML 成图 |
-| A-5 | ChatGPT/Codex（具体产品与模型版本待补充）   | MapReduce 实现阶段 | 语法排错、概念学习查询、代码审查和文字润色 | 江婧怡负责主要架构组织、框架实现、代码修改和运行验证        |
+| A-5 | ChatGPT/Codex（具体模型版本以实际使用记录为准）   | MapReduce 实现阶段 | MapReduce 单机模拟架构划分、Driver 调度、Mapper 候选生成、Shuffle 分组、Reducer 汇总、位向量剪枝、首解顺序恢复、README 和报告文字润色 | 江婧怡核对 Map/Shuffle/Reduce 阶段边界、记录流与分组连接、候选分类、frontier 推进、位向量索引、首解顺序、无解返回、运行验证结果和报告表述一致性 |
 | A-6 | OpenAI Codex-5.6              | 最终报告补充阶段 | 只在第四章之外补充封面、目录、分工、实验环境、图表题注、原创反思、参考文献、AI 声明和材料索引 | [待补充：小组成员对本次报告增补内容的逐项审核、修改和未采用内容] |
 
 ### A.2 详细使用记录
@@ -854,13 +930,18 @@ src/main/java/nqueens/architectures/blackboard/
 
 #### A.2.5 MapReduce 单机模拟实现
 
-- **工具及版本：** ChatGPT/Codex（具体产品版本与模型版本待补充）。
-- **使用时间或阶段：** MapReduce 实现阶段；[待补充：实际日期]。
-- **具体用途：** 源文件统一记录为语法排错、概念学习查询、代码审查和文字润色。
-- **完整提示词：** [待补充：该次实际使用的完整提示词；仓库中未找到原始记录]。
-- **关键输出：** `src/main/java/nqueens/architectures/mapreduce/` 下的 Driver、Mapper、Shuffler、Reducer、候选记录、分组键和搜索状态等实现。
-- **本人审核和修改内容：** 江婧怡负责主要架构组织、框架实现、代码修改和运行验证；提交前仍应根据真实使用记录区分 ChatGPT 与 Codex 各自承担的具体任务。
-- **未采用内容：** [待补充：根据实际对话记录填写未采用的建议或代码]。
+- **工具及版本：** OpenAI Codex-5.6
+- **使用时间或阶段：** MapReduce 实现、审核与说明整理阶段；
+- **具体用途：** 辅助核对 MapReduce 单机模拟的架构划分、Driver 调度、Mapper 候选生成、Shuffle 分组、Reducer 汇总、三个位向量剪枝、首解顺序恢复、无解返回、README 说明和报告文字表达；源文件统一记录为语法排错、概念学习查询、代码审查和文字润色。
+- **完整提示词：**
+
+~~~text
+请基于当前仓库和任务书要求，审查我负责的 MapReduce 单机模拟实现。重点检查：代码是否存在 Java 语法、泛型或运行错误；是否符合 N 皇后统一求首解算法思想；MapReduce 架构是否真实搭建，包括 Driver 调度、Mapper 候选生成、Shuffle 按 key 分组、Reducer 汇总合法候选；是否存在跳过 Shuffle、组件直接共享搜索状态、额外剪枝、缓存答案或启发式排序等不符合要求的情况；首解顺序、位向量剪枝、无解返回和公共 CLI 契约是否正确。请同时查询和解释 MapReduce、Shuffle、frontier、record/key、Reducer 等相关基础概念，并协助润色 README、源文件自查说明和报告中的 MapReduce 表述。
+~~~
+
+- **关键输出：** 围绕 `src/main/java/nqueens/architectures/mapreduce/` 下 Driver、Mapper、Shuffler、Reducer、候选记录、分组键、搜索状态和归约结果等文件形成的审查意见、排错建议、概念解释和说明文字。
+- **本人审核和修改内容：** 江婧怡核对 Map/Shuffle/Reduce 阶段边界、记录流与分组连接、候选分类、frontier 推进、位向量索引、首解顺序、无解返回、运行验证结果和报告表述一致性，并根据审核结果完成 MapReduce 部分的代码调整、README 整理、源文件自查声明和报告说明确认。
+- **未采用内容：** 未采用将本版本改为 Hadoop 或真实分布式运行的建议，未采用多线程并行 Map、对称性剪枝、启发式排序、答案缓存、特定 N 特判、跳过真实 Shuffle 或直接共享可变搜索状态的方案；未采用由 AI 估算实验数据、代替本人确认 UML 成图或填写未经核实签名信息的内容，实验结论仍以仓库原始日志和本人复核结果为准。
 
 #### A.2.6 最终报告缺项补充
 
@@ -1358,7 +1439,7 @@ Markdown 中增加目录区域。
 - 杨铱玫确认及手写签名：杨铱玫，2026/10/11
 - 戴柔柔确认及电子签名：戴柔柔，2026/10/11
 - 饶心翊确认及手写签名：饶心翊，2026/10/11
-- 江婧怡确认及手写签名：[待补充：签名与日期]
+- 江婧怡确认及手写签名：江婧怡，2026/10/11
 
 ## 附录 B 提交材料索引
 
